@@ -3,3 +3,4 @@ requests==2.23.0
 beautifulsoup4
 pyodbc
 pandas
+openpyxl
