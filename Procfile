@@ -1,1 +1,1 @@
-worker: python3 tandem_bot.py
+worker: python3 audi_vitebsky_bot.py
