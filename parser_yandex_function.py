@@ -5,7 +5,7 @@ import re
 
 url = 'https://www.yandex.ru/search/ads?text='
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0'}
-reg_exp = '5|6|7|8|9|10|11|12|13|14|15'
+reg_exp = '9|10|11|12|13|14' #5|6|7|8|9|
 
 def parse_yandex_moscow(search_query):
 

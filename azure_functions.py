@@ -16,48 +16,77 @@ def get_stat(query):
 
     # меняем маркированные символы на латиницу
     calltags_string = r"1С: Отдел продаж автомобилей', 'Кредит', 'Покупка конкретного ТС (новые)', 'Покупка модели (новые)', 'Покупка ТС без уточнения (новые)', 'Продажа', 'Модель"
-    query = query.replace('{tags}', calltags_string, 1)
+    query = query.replace('{tags}', calltags_string, 3)
 
     connector = pyodbc.connect(driver_string)
     connector.timeout = 30
     cursor = connector.cursor()
 
-    try:
-        # получаем расходы
-        cursor.execute(query)
-        row_data = cursor.fetchone()
-        print(row_data)
+    # получаем стату
+    cursor.execute(query)
+    row_data = cursor.fetchone()
+    print(row_data, type(row_data), len(row_data))
 
-        try:
-            unique_calls_cpl = round(row_data[3] / row_data[1])
-        except:
-            unique_calls_cpl = 0
+    stat_dict = dict()
+    stat_dict['date'] = row_data[0]
+    stat_dict['unique_calls'] = row_data[1]
+    stat_dict['target_calls'] = row_data[2]
+    stat_dict['adcost'] = round(row_data[3])
+    stat_dict['max_hour'] = row_data[4]
+
+    if stat_dict['unique_calls'] == 0:
+        stat_dict['unique_calls_cpl'] = 0
+    else:
+        stat_dict['unique_calls_cpl'] = round(stat_dict['adcost'] / stat_dict['unique_calls'])
+
+    if stat_dict['target_calls'] == 0:
+        stat_dict['target_calls_cpl'] = 0
+    else:
+        stat_dict['target_calls_cpl'] = round(stat_dict['adcost'] / stat_dict['target_calls'])
 
 
-        try:
-            target_calls_cpl = round(row_data[3] / row_data[2])
-        except:
-            target_calls_cpl = 0
+    if len(row_data) == 9:  # контекст
+        stat_dict['target_calls_yandex'] = row_data[5]
+        stat_dict['target_calls_google'] = row_data[6]
+        stat_dict['adcost_yandex'] = round(row_data[7])
+        stat_dict['adcost_google'] = round(row_data[8])
 
-        # кладем все что получили в словарь
-        stat_dict = dict()
-        stat_dict['date'] = row_data[0]
-        stat_dict['unique_calls'] = row_data[1]
-        stat_dict['target_calls'] = row_data[2]
-        stat_dict['adcost'] = row_data[3]
-        stat_dict['max_hour'] = row_data[4]
-        stat_dict['unique_calls_cpl'] = unique_calls_cpl
-        stat_dict['target_calls_cpl'] = target_calls_cpl
+        if stat_dict['target_calls_yandex'] == 0:
+            stat_dict['target_calls_yandex_cpl'] = 0
+        else:
+            stat_dict['target_calls_yandex_cpl'] = round(stat_dict['adcost_yandex'] / stat_dict['target_calls_yandex'])
 
-        end_date = datetime.now()
-        print('Время обработки запроса: ', end_date - start_date)
+        if stat_dict['target_calls_google'] == 0:
+            stat_dict['target_calls_google_cpl'] = 0
+        else:
+            stat_dict['target_calls_google_cpl'] = round(stat_dict['adcost_google'] / stat_dict['target_calls_google'])
 
-        return stat_dict
-    except Exception as e:
-        print(e)
-        return 'error'
-    finally:
-        connector.close()
+    #print(stat_dict, len(stat_dict))
+    elif len(row_data) == 11:  # тотал
+        stat_dict['target_calls_yandex'] = row_data[5]
+        stat_dict['target_calls_google'] = row_data[6]
+        stat_dict['target_calls_facebook'] = row_data[7]
+        stat_dict['adcost_yandex'] = round(row_data[8])
+        stat_dict['adcost_google'] = round(row_data[9])
+        stat_dict['adcost_facebook'] = round(row_data[10])
 
-# test_query = open(r'ppc_sql\ppc_yesterday_stat.sql').read()
-# print(get_stat(test_query))
+        if stat_dict['target_calls_yandex'] == 0:
+            stat_dict['target_calls_yandex_cpl'] = 0
+        else:
+            stat_dict['target_calls_yandex_cpl'] = round(stat_dict['adcost_yandex'] / stat_dict['target_calls_yandex'])
+
+        if stat_dict['target_calls_google'] == 0:
+            stat_dict['target_calls_google_cpl'] = 0
+        else:
+            stat_dict['target_calls_google_cpl'] = round(stat_dict['adcost_google'] / stat_dict['target_calls_google'])
+
+        if stat_dict['target_calls_facebook'] == 0:
+            stat_dict['target_calls_facebook_cpl'] = 0
+        else:
+            stat_dict['target_calls_facebook_cpl'] = round(stat_dict['adcost_facebook'] / stat_dict['target_calls_facebook'])
+
+    return stat_dict
+    connector.close()
+
+# test_query = open(r'total_sql\total_yesterday_stat.sql').read()
+# get_stat(test_query)

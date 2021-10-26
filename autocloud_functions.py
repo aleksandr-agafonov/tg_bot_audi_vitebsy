@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 from datetime import datetime
+import asyncio
 
 
 url = 'https://api.aaa24.ru/api/'
@@ -20,7 +21,7 @@ auth_params = {
 
 
 # считает звонки
-def get_autocloud_calls(date_from, date_to):
+async def get_autocloud_calls(date_from, date_to):
     result_dict = dict()
     page = 1
     df_list = []
@@ -81,6 +82,13 @@ def get_autocloud_calls(date_from, date_to):
     return result_dict
 
 
+# асинхронная функция для сбора звонков из Автоклауда
+async def async_get_autocloud_calls(date_from, date_to):
+    return await get_autocloud_calls(date_from, date_to)
+
+#a = asyncio.run(async_get_autocloud_calls('2021-10-01', '2021-10-11'))
+
+
 # отчет по минимальной цене
 def get_competitors():
     start_time = datetime.now()
@@ -136,7 +144,6 @@ def get_competitors():
                 result_dict = dict()
                 result_dict['Марка'] = clients_ad['mark']
                 result_dict['Модель'] = clients_ad['model']
-                #result_dict['Тип кузова'] = client['х.з']  # нет в ответе кузова
                 result_dict['Модификация'] = clients_ad['modif']
                 result_dict['Комплектация'] = clients_ad['comp']
                 result_dict['Цена в салоне Ауди Центр Витебский с учетом скидок'] = clients_ad['price']
@@ -154,10 +161,10 @@ def get_competitors():
 
     df = pd.DataFrame(result_list)
     df.to_excel('конкуренты.xlsx')
-    print('done')
     finish_time = datetime.now()
     print('обработка заняла: ', finish_time - start_time)
     return 'ok'
 
-# get_competitors()
-#get_autocloud_calls('2021-10-15', '2021-10-15')
+#get_competitors()
+# a = get_autocloud_calls('2021-10-01', '2021-10-05')
+# print(a)

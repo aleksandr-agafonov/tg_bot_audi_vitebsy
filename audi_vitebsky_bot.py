@@ -7,20 +7,24 @@ from states import Actions
 
 # питоновские функции
 from datetime import datetime, timedelta, date
+import asyncio
+import nest_asyncio
+
 
 # внутренние функции
 from parser_yandex_function import parse_yandex_moscow
-from autocloud_functions import get_autocloud_calls, get_competitors
+from autocloud_functions import get_competitors, async_get_autocloud_calls, get_autocloud_calls
 from azure_functions import get_stat  # функция для прогона запросов
 
 # клавиатуры
-from keyboards import main_keyboard, total_keyboard, ppc_keyboard, target_keyboard, autocloud_keyboard  # ипорт клавиатур для меню и подменю
+from keyboards import main_keyboard, total_keyboard, ppc_keyboard, target_keyboard, autocloud_keyboard  # импорт клавиатур для меню и подменю
 
 
 #token = '1938283222:AAEe7C80RbtpAjW7BVBzt6qISW8VnzIpg0A'  # токен тестового бота
 token = '2085361058:AAH1i7mIT74yOWEP25RB8a_r89VOoj4jE5w'  # токен боевого бота
 bot = Bot(token=token)
 dp = Dispatcher(bot, storage=MemoryStorage())
+nest_asyncio.apply()
 
 
 # SQL запросы тотал
@@ -123,7 +127,19 @@ async def get_total_yesterday_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+                                
+                               'Yandex расход: ' + str(message['adcost_yandex']) + ' руб.' + '\n' +
+                               'Yandex ОП: ' + str(message['target_calls_yandex']) + '\n' +
+                               'Yandex CPL ОП: ' + str(message['target_calls_yandex_cpl']) + ' руб.' + '\n\n'
+                                
+                               'Google расход: ' + str(message['adcost_google']) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(message['target_calls_google']) + '\n' +
+                               'Google CPL ОП: ' + str(message['target_calls_google_cpl']) + ' руб.'+ '\n\n'
+
+                               'Facebook расход: ' + str(message['adcost_facebook']) + ' руб.' + '\n' +
+                               'Facebook ОП: ' + str(message['target_calls_facebook']) + '\n' +
+                               'Facebook CPL ОП: ' + str(message['target_calls_facebook_cpl']) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -149,12 +165,24 @@ async def get_total_today_stat(callback_query: types.CallbackQuery):
         # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по всем каналам')
         await bot.send_message(callback_query.from_user.id,
-                               'Расход на: ' + str(message['date']) + ' ' + str(message['max_hour']) + ' часов' + '\n' +
+                               'Расход на: ' + str(message['date']) + '\n' +
                                'Составляет: ' + str(round(message['adcost'], 0)) + ' руб.' + '\n' +
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+
+                               'Yandex расход: ' + str(message['adcost_yandex']) + ' руб.' + '\n' +
+                               'Yandex ОП: ' + str(message['target_calls_yandex']) + '\n' +
+                               'Yandex CPL ОП: ' + str(message['target_calls_yandex_cpl']) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(message['adcost_google']) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(message['target_calls_google']) + '\n' +
+                               'Google CPL ОП: ' + str(message['target_calls_google_cpl']) + ' руб.' + '\n\n'
+
+                               'Facebook расход: ' + str(message['adcost_facebook']) + ' руб.' + '\n' +
+                               'Facebook ОП: ' + str(message['target_calls_facebook']) + '\n' +
+                               'Facebook CPL ОП: ' + str(message['target_calls_facebook_cpl']) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -185,7 +213,19 @@ async def get_total_current_week_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+
+                               'Yandex расход: ' + str(message['adcost_yandex']) + ' руб.' + '\n' +
+                               'Yandex ОП: ' + str(message['target_calls_yandex']) + '\n' +
+                               'Yandex CPL ОП: ' + str(message['target_calls_yandex_cpl']) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(message['adcost_google']) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(message['target_calls_google']) + '\n' +
+                               'Google CPL ОП: ' + str(message['target_calls_google_cpl']) + ' руб.' + '\n\n'
+
+                               'Facebook расход: ' + str(message['adcost_facebook']) + ' руб.' + '\n' +
+                               'Facebook ОП: ' + str(message['target_calls_facebook']) + '\n' +
+                               'Facebook CPL ОП: ' + str(message['target_calls_facebook_cpl']) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -216,7 +256,19 @@ async def get_total_current_month_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+
+                               'Yandex расход: ' + str(message['adcost_yandex']) + ' руб.' + '\n' +
+                               'Yandex ОП: ' + str(message['target_calls_yandex']) + '\n' +
+                               'Yandex CPL ОП: ' + str(message['target_calls_yandex_cpl']) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(message['adcost_google']) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(message['target_calls_google']) + '\n' +
+                               'Google CPL ОП: ' + str(message['target_calls_google_cpl']) + ' руб.' + '\n\n'
+
+                               'Facebook расход: ' + str(message['adcost_facebook']) + ' руб.' + '\n' +
+                               'Facebook ОП: ' + str(message['target_calls_facebook']) + '\n' +
+                               'Facebook CPL ОП: ' + str(message['target_calls_facebook_cpl']) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -247,7 +299,19 @@ async def get_total_previous_month_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+
+                               'Yandex расход: ' + str(message['adcost_yandex']) + ' руб.' + '\n' +
+                               'Yandex ОП: ' + str(message['target_calls_yandex']) + '\n' +
+                               'Yandex CPL ОП: ' + str(message['target_calls_yandex_cpl']) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(message['adcost_google']) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(message['target_calls_google']) + '\n' +
+                               'Google CPL ОП: ' + str(message['target_calls_google_cpl']) + ' руб.' + '\n\n'
+
+                               'Facebook расход: ' + str(message['adcost_facebook']) + ' руб.' + '\n' +
+                               'Facebook ОП: ' + str(message['target_calls_facebook']) + '\n' +
+                               'Facebook CPL ОП: ' + str(message['target_calls_facebook_cpl']) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -286,7 +350,15 @@ async def get_ppc_yesterday_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n' +
+                               # рабивка по каналам
+                               'Яндекс расход: ' + str(round(message['adcost_yandex'])) + ' руб.' + '\n' +
+                               'Яндекс ОП: ' + str(round(message['target_calls_yandex'])) + '\n' +
+                               'Яндекс CPL ОП: ' + str(round(message['target_calls_yandex_cpl'])) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(round(message['adcost_google'])) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(round(message['target_calls_google'])) + '\n' +
+                               'Google CPL ОП: ' + str(round(message['target_calls_google_cpl'])) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -309,7 +381,6 @@ async def get_ppc_today_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(ppc_today_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по контекстной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход на: ' + str(message['date']) + ' ' + str(message['max_hour']) + ' часов' + '\n' +
@@ -317,7 +388,15 @@ async def get_ppc_today_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+                               # рабивка по каналам
+                               'Яндекс расход: ' + str(round(message['adcost_yandex'])) + ' руб.' + '\n' +
+                               'Яндекс ОП: ' + str(round(message['target_calls_yandex'])) + '\n' +
+                               'Яндекс CPL ОП: ' + str(round(message['target_calls_yandex_cpl'])) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(round(message['adcost_google'])) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(round(message['target_calls_google'])) + '\n' +
+                               'Google CPL ОП: ' + str(round(message['target_calls_google_cpl'])) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -340,7 +419,6 @@ async def get_ppc_current_week_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(ppc_current_week_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по контекстной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход за эту неделю' + '\n' +
@@ -348,7 +426,15 @@ async def get_ppc_current_week_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+                               # рабивка по каналам
+                               'Яндекс расход: ' + str(round(message['adcost_yandex'])) + ' руб.' + '\n' +
+                               'Яндекс ОП: ' + str(round(message['target_calls_yandex'])) + '\n' +
+                               'Яндекс CPL ОП: ' + str(round(message['target_calls_yandex_cpl'])) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(round(message['adcost_google'])) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(round(message['target_calls_google'])) + '\n' +
+                               'Google CPL ОП: ' + str(round(message['target_calls_google_cpl'])) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -371,7 +457,6 @@ async def get_ppc_current_month_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(ppc_current_month_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по контекстной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход за текущий месяц' + '\n' +
@@ -379,7 +464,15 @@ async def get_ppc_current_month_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+                               # рабивка по каналам
+                               'Яндекс расход: ' + str(round(message['adcost_yandex'])) + ' руб.' + '\n' +
+                               'Яндекс ОП: ' + str(round(message['target_calls_yandex'])) + '\n' +
+                               'Яндекс CPL ОП: ' + str(round(message['target_calls_yandex_cpl'])) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(round(message['adcost_google'])) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(round(message['target_calls_google'])) + '\n' +
+                               'Google CPL ОП: ' + str(round(message['target_calls_google_cpl'])) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -402,7 +495,6 @@ async def get_ppc_previous_month_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(ppc_previous_month_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по контекстной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход за прошлый месяц' + '\n' +
@@ -410,7 +502,15 @@ async def get_ppc_previous_month_stat(callback_query: types.CallbackQuery):
                                'Всего уникальных звонков: ' + str(message['unique_calls']) + '\n' +
                                'CPL: ' + str(message['unique_calls_cpl']) + ' руб.' + '\n' +
                                'Звонки ОП: ' + str(message['target_calls']) + '\n' +
-                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.'
+                               'CPL ОП: ' + str(message['target_calls_cpl']) + ' руб.' + '\n\n'
+                               # рабивка по каналам
+                               'Яндекс расход: ' + str(round(message['adcost_yandex'])) + ' руб.' + '\n' +
+                               'Яндекс ОП: ' + str(round(message['target_calls_yandex'])) + '\n' +
+                               'Яндекс CPL ОП: ' + str(round(message['target_calls_yandex_cpl'])) + ' руб.' + '\n\n'
+
+                               'Google расход: ' + str(round(message['adcost_google'])) + ' руб.' + '\n' +
+                               'Google ОП: ' + str(round(message['target_calls_google'])) + '\n' +
+                               'Google CPL ОП: ' + str(round(message['target_calls_google_cpl'])) + ' руб.'
                                )
         await bot.send_message(callback_query.from_user.id,
                                'Выберете пункт меню',
@@ -433,7 +533,6 @@ async def show_target_result_menu(callback_query: types.CallbackQuery, state: FS
     await Actions.target_ad_state.set()
 
 
-
 # запрашиваем стату по таргетированной рекламе за "вчера" из AZURE
 @dp.callback_query_handler(lambda c: c.data == 'c_target_yesterday_stat', state=Actions.target_ad_state)
 async def get_target_yesterday_stat(callback_query: types.CallbackQuery):
@@ -443,7 +542,6 @@ async def get_target_yesterday_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(target_yesterday_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по таргетированной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход на: ' + str(message['date']) + '\n' +
@@ -474,7 +572,6 @@ async def get_target_today_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(target_today_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по таргетированной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход на: ' + str(message['date']) + ' ' + str(message['max_hour']) + ' часов' + '\n' +
@@ -505,7 +602,6 @@ async def get_target_current_week_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(target_current_week_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по таргетированной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход за эту неделю' + '\n' +
@@ -566,7 +662,6 @@ async def get_target_previous_month_stat(callback_query: types.CallbackQuery):
         # разбираем содержимое функции
         message = get_stat(target_previous_month_stat)
 
-        # await bot.answer_callback_query(callback_query.id)
         await bot.send_message(callback_query.from_user.id, 'Результаты по таргетированной рекламе')
         await bot.send_message(callback_query.from_user.id,
                                'Расход за прошлый месяц' + '\n' +
@@ -604,8 +699,12 @@ async def get_autocloud_today_stat(callback_query: types.CallbackQuery, state: F
 
     # генерируем даты
     today = (datetime.now() - timedelta(days=0)).strftime('%Y-%m-%d')
-    result = get_autocloud_calls(today, today)
-    print(result)
+
+    # асинхронный вызов функции
+    loop = asyncio.get_running_loop()
+    run_func = loop.create_task(async_get_autocloud_calls(today, today))
+    loop.run_until_complete(run_func)
+    result = run_func.result()
 
     message_text = f'''
     Классифайды: срез за сегодня
@@ -628,8 +727,12 @@ async def get_autocloud_yesterday_stat(callback_query: types.CallbackQuery, stat
 
     # генерируем даты
     yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-    result = get_autocloud_calls(yesterday, yesterday)
-    print(result)
+
+    # асинхронный вызов функции
+    loop = asyncio.get_running_loop()
+    run_func = loop.create_task(async_get_autocloud_calls(yesterday, yesterday))
+    loop.run_until_complete(run_func)
+    result = run_func.result()
 
     message_text = f'''
     Классифайды: срез за вчера
@@ -655,7 +758,11 @@ async def get_autocloud_current_week_stat(callback_query: types.CallbackQuery, s
     start_of_week = get_date - timedelta(days=get_date.weekday())
     end_of_week = start_of_week + timedelta(days=6)
 
-    result = get_autocloud_calls(start_of_week, end_of_week)
+    # асинхронный вызов функции
+    loop = asyncio.get_running_loop()
+    run_func = loop.create_task(async_get_autocloud_calls(start_of_week, end_of_week))
+    loop.run_until_complete(run_func)
+    result = run_func.result()
 
     message_text = f'''
     Классифайды: срез за текущую неделю
@@ -680,7 +787,11 @@ async def get_autocloud_current_month_stat(callback_query: types.CallbackQuery, 
     end_of_month = date.today()
     start_of_month = end_of_month.replace(day=1)
 
-    result = get_autocloud_calls(start_of_month, end_of_month)
+    # асинхронный вызов функции
+    loop = asyncio.get_running_loop()
+    run_func = loop.create_task(async_get_autocloud_calls(start_of_month, end_of_month))
+    loop.run_until_complete(run_func)
+    result = run_func.result()
 
     message_text = f'''
     Классифайды: срез за текущий месяц
@@ -707,7 +818,11 @@ async def get_autocloud_previous_month_stat(callback_query: types.CallbackQuery,
     end_of_last_month = start_of_month - timedelta(days=1)
     start_of_last_month = end_of_last_month.replace(day=1)
 
-    result = get_autocloud_calls(start_of_last_month, end_of_last_month)
+    # асинхронный вызов функции
+    loop = asyncio.get_running_loop()
+    run_func = loop.create_task(async_get_autocloud_calls(start_of_last_month, end_of_last_month))
+    loop.run_until_complete(run_func)
+    result = run_func.result()
 
     message_text = f'''
     Классифайды: срез за прошлый месяц
@@ -726,7 +841,7 @@ Drom.ru звонков ОП: {result['target_calls_drom']}
 #  собираем отчет по минимальной цене из API Автоклауда и отправляем EXCEL файл
 @dp.callback_query_handler(lambda c: c.data == 'c_switch_autocloud_competitors')
 async def get_autocloud_competors(callback_query: types.CallbackQuery):
-    await bot.send_message(callback_query.from_user.id, 'Собираю информацию, подождите немного')
+    await bot.send_message(callback_query.from_user.id, 'Ваш запрос обрабатывается, это может занять около минуты')
     competitors = get_competitors()
     if competitors == 'ok':
         file_name = open('конкуренты.xlsx', 'rb')
@@ -737,7 +852,6 @@ async def get_autocloud_competors(callback_query: types.CallbackQuery):
         await bot.send_message(callback_query.from_user.id, 'Не удалось сформировать файл, попробуйте позже')
         await bot.send_message(callback_query.from_user.id, 'Выберете пункт меню', reply_markup=main_keyboard)
         await bot.answer_callback_query(callback_query.id)
-
 
 
 executor.start_polling(dp, skip_updates=True)
