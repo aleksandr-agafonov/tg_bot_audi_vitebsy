@@ -12,7 +12,7 @@ driver_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' \
 
 # функция подключения и чтения из AZURE
 def get_stat(query):
-    start_date = datetime.now()
+    start_time = datetime.now()
 
     # меняем маркированные символы на латиницу
     calltags_string = r"1С: Отдел продаж автомобилей', 'Кредит', 'Покупка конкретного ТС (новые)', 'Покупка модели (новые)', 'Покупка ТС без уточнения (новые)', 'Продажа', 'Модель"
@@ -85,8 +85,10 @@ def get_stat(query):
         else:
             stat_dict['target_calls_facebook_cpl'] = round(stat_dict['adcost_facebook'] / stat_dict['target_calls_facebook'])
 
-    return stat_dict
+    end_time = datetime.now()
+    print('Обработка заняла:', end_time-start_time)
     connector.close()
+    return stat_dict
 
-# test_query = open(r'total_sql\total_yesterday_stat.sql').read()
+# test_query = open(r'ppc_sql\ppc_current_week_stat.sql').read()
 # get_stat(test_query)
