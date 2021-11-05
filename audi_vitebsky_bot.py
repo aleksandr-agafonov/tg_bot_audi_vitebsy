@@ -13,7 +13,7 @@ import nest_asyncio
 
 # внутренние функции
 from parser_yandex_function import parse_yandex_moscow
-from autocloud_functions import get_competitors, async_get_autocloud_calls, get_autocloud_calls
+from autocloud_functions import get_competitors, async_get_autocloud_calls
 from azure_functions import get_stat  # функция для прогона запросов
 
 # клавиатуры
@@ -25,7 +25,7 @@ token = '2085361058:AAH1i7mIT74yOWEP25RB8a_r89VOoj4jE5w'  # токен боев�
 bot = Bot(token=token)
 dp = Dispatcher(bot, storage=MemoryStorage())
 nest_asyncio.apply()
-
+allowed_users = [774326319, 366674678, 659897374, 690598, 1673451611]  # список авторизованных пользователей
 
 # SQL запросы тотал
 total_yesterday_stat = open('total_sql/total_yesterday_stat.sql').read()
@@ -52,8 +52,11 @@ target_previous_month_stat = open(r'target_sql/target_previous_month_stat.sql').
 # Приветственный блок
 @dp.message_handler(commands=['start'], state='*')  # приветствуем и показываем клавиатуру
 async def say_hello(message: types.Message, state: FSMContext):
-    await state.finish()
-    await message.answer('Выберете пункт меню', reply_markup=main_keyboard)
+    if message.chat.id in allowed_users:
+        await state.finish()
+        await message.answer('Выберете пункт меню', reply_markup=main_keyboard)
+    else:
+        await message.answer('Вы неавторизованы на использование бота')
 # Приветственный блок
 
 
@@ -855,3 +858,4 @@ async def get_autocloud_competors(callback_query: types.CallbackQuery):
 
 
 executor.start_polling(dp, skip_updates=True)
+
