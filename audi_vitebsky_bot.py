@@ -25,7 +25,7 @@ token = '2085361058:AAH1i7mIT74yOWEP25RB8a_r89VOoj4jE5w'  # токен боев�
 bot = Bot(token=token)
 dp = Dispatcher(bot, storage=MemoryStorage())
 nest_asyncio.apply()
-allowed_users = [774326319, 366674678, 659897374, 690598, 1673451611]  # список авторизованных пользователей
+allowed_users = [774326319, 366674678, 659897374, 690598, 1673451611, 200453539]  # список авторизованных пользователей
 
 # SQL запросы тотал
 total_yesterday_stat = open('total_sql/total_yesterday_stat.sql').read()
